@@ -31,15 +31,34 @@ const SENTENCES = [
   "Ghost programs roamed the abandoned servers of the old government."
 ];
 
-const generateParagraph = (level = 1) => {
-  // Determine number of sentences based on level
-  // Level 1: 1-2 sentences
-  // Level 10: 5-6 sentences
-  const numSentences = Math.min(6, Math.floor(level / 2) + 1);
+/**
+ * Generates a paragraph for typing.
+ * Now fetches from the internet for variety, with a local fallback.
+ * @param {number} level - Level determines the length (number of sentences).
+ * @returns {Promise<string>} - The generated paragraph.
+ */
+const generateParagraph = async (level = 1) => {
+  const numSentences = Math.min(8, Math.floor(level / 2) + 2);
   
-  // Shuffle and pick
+  try {
+    // Fetch from Bacon Ipsum API (sentences mode)
+    const response = await fetch(`https://baconipsum.com/api/?type=meat-and-filler&sentences=${numSentences}&format=text`, {
+      signal: AbortSignal.timeout(3000) // 3s timeout
+    });
+
+    if (response.ok) {
+      const text = await response.text();
+      if (text && text.length > 10) {
+        return text.trim();
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to fetch paragraph from internet, using local fallback:', error.message);
+  }
+
+  // Fallback: Original logic using hardcoded sentences
   const shuffled = [...SENTENCES].sort(() => 0.5 - Math.random());
-  const selected = shuffled.slice(0, numSentences);
+  const selected = shuffled.slice(0, Math.min(shuffled.length, numSentences));
   
   return selected.join(" ");
 };

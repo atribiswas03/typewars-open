@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { generateParagraph } = require('../utils/paragraphGenerator');
 
-router.get('/paragraph', (req, res) => {
+router.get('/paragraph', async (req, res) => {
   const level = parseInt(req.query.level) || 1;
-  const quote = generateParagraph(level);
+  const quote = await generateParagraph(level);
   
   // Calculate match duration
   const wordCount = quote.split(' ').length;

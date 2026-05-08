@@ -15,12 +15,12 @@ let matchmakingPool = [];
 let poolTimer = null;
 
 module.exports = (io) => {
-  const startMatch = (players, humanPlayers) => {
+  const startMatch = async (players, humanPlayers) => {
     const roomId = uuidv4();
     
     // Calculate average level for paragraph generation
     const avgLevel = Math.round(humanPlayers.reduce((acc, p) => acc + (p.level || 1), 0) / humanPlayers.length) || 1;
-    const quote = generateParagraph(avgLevel);
+    const quote = await generateParagraph(avgLevel);
     
     // Calculate match duration
     const wordCount = quote.split(' ').length;
@@ -227,7 +227,7 @@ module.exports = (io) => {
           poolTimer = null;
         }
         const players = matchmakingPool.splice(0, 5);
-        startMatch(players, players);
+        await startMatch(players, players);
         return;
       }
 
