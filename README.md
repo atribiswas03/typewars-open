@@ -6,7 +6,39 @@
 
 **TypeWars** is a high-octane, cyberpunk-themed real-time typing battle platform. Compete against players worldwide in the "Neural Grid", track your WPM performance, climb the global leaderboards, and level up your typing skills.
 
-![TypeWars Hero](./docs/images/hero.png)
+---
+
+## 🖼️ Project Showcase
+
+> [!NOTE]
+> GitHub READMEs are static and do not support interactive JavaScript sliders. Below is a structured gallery of the platform. For an animated experience, we recommend combining these into a GIF.
+
+<div align="center">
+  <img src="./docs/images/hero.png" width="800" alt="TypeWars Hero" />
+  <br />
+  <p><i>The Neural Grid Landing Interface</i></p>
+</div>
+
+<hr />
+
+<div align="center">
+  <table border="0">
+    <tr>
+      <td width="33%" align="center">
+        <img src="./docs/images/lobby.png" width="100%" alt="Lobby" />
+        <br /><b>Matchmaking Lobby</b>
+      </td>
+      <td width="33%" align="center">
+        <img src="./docs/images/battle.png" width="100%" alt="Battle" />
+        <br /><b>Real-time Combat</b>
+      </td>
+      <td width="33%" align="center">
+        <img src="./docs/images/profile.png" width="100%" alt="Profile" />
+        <br /><b>Neural Stats</b>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
@@ -132,30 +164,9 @@ typewars-open/
 
 ---
 
-## 📸 Demo Images
-
-To see the platform in action, place the following images in the `docs/images/` folder:
-
-| Image Name | Description | Recommended Dimensions |
-| :--- | :--- | :--- |
-| `hero.png` | Landing page showing the cyberpunk title. | 1200x600 |
-| `lobby.png` | Multiplayer matchmaking lobby. | 1200x800 |
-| `battle.png` | Live typing race in progress. | 1200x800 |
-| `profile.png` | User profile with XP and stats. | 1200x800 |
-
----
-
 ## 🤝 Contribution Guide
 
-We welcome contributions! To contribute:
-
-1.  **Fork** the project.
-2.  **Create** your feature branch (`git checkout -b feature/AmazingFeature`).
-3.  **Commit** your changes (`git commit -m 'Add some AmazingFeature'`).
-4.  **Push** to the branch (`git push origin feature/AmazingFeature`).
-5.  **Open** a Pull Request.
-
-Please ensure your code follows the existing style and includes comments where necessary.
+We welcome contributions! To contribute, please check [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ---
 
