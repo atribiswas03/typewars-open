@@ -1,4 +1,5 @@
 const https = require('https');
+const http = require('http');
 
 const PARAGRAPHS = [
   "The neon lights flickered as the console hummed with rhythmic data streams. In the heart of the digital sprawl, a single line of code could change everything. Neural links pulsed with the weight of a thousand encrypted transmissions, while deep within the mainframe, shadows danced between the logic gates. It was a world built on silicon and light, where the boundary between man and machine grew thinner with every passing nanosecond.",
@@ -11,18 +12,38 @@ const PARAGRAPHS = [
   "History is a complex tapestry of events, personalities, and movements that have shaped the world into what it is today. By studying the past, we gain a deeper understanding of the present and can better navigate the path toward the future. Every victory, every failure, and every struggle provides valuable lessons that can guide us in our quest for a more just and equitable society."
 ];
 
-const fetchFromAPI = (url) => {
+const fetchFromAPI = (url, redirectCount = 0) => {
+  if (redirectCount > 3) {
+    return Promise.reject(new Error('Too many redirects'));
+  }
+
   return new Promise((resolve, reject) => {
-    const req = https.get(url, { 
+    const protocol = url.startsWith('https') ? https : http;
+    const options = {
       timeout: 5000,
       headers: {
-        'User-Agent': 'TypeWars/1.0 (https://typewars.com; support@typewars.com)'
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+      },
+      // Some APIs have expired certificates but still work. We'll allow it as a fallback.
+      rejectUnauthorized: false 
+    };
+
+    const req = protocol.get(url, options, (res) => {
+      // Handle Redirects (301, 302, 303, 307, 308)
+      if ([301, 302, 303, 307, 308].includes(res.statusCode)) {
+        const location = res.headers.location;
+        if (location) {
+          // Handle relative vs absolute URLs
+          const nextUrl = location.startsWith('http') ? location : new URL(location, url).href;
+          return fetchFromAPI(nextUrl, redirectCount + 1).then(resolve).catch(reject);
+        }
       }
-    }, (res) => {
+
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
-        if (res.statusCode === 200) {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(data);
         } else {
           reject(new Error(`API responded with status ${res.statusCode}`));
@@ -43,39 +64,26 @@ const fetchFromAPI = (url) => {
 
 const generateParagraph = async (level = 1) => {
   try {
-    // Primary Source: Wikipedia Random Summary (High Quality, Proper English)
+    // Primary: Wikipedia (Proper English, Meaningful)
     const url = `https://en.wikipedia.org/api/rest_v1/page/random/summary`;
     const response = await fetchFromAPI(url);
     const data = JSON.parse(response);
     
     if (data && data.extract && data.extract.length > 50) {
-      // Wikipedia summaries are naturally good paragraphs.
-      // We'll return it as is, or trim if too long for low levels.
-      let text = data.extract.trim();
-      
-      // Basic length adjustment for level
-      const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-      const maxSentences = Math.min(12, Math.floor(level / 2) + 2);
-      
-      if (sentences.length > maxSentences) {
-        text = sentences.slice(0, maxSentences).join(' ');
-      }
-      
-      return text;
+      return data.extract.trim();
     }
   } catch (error) {
-    console.warn('Wikipedia fetch failed, trying fallback:', error.message);
+    console.warn('Wikipedia failed:', error.message);
     
-    // Fallback 1: Bacon Ipsum (Reliable, but "meat" text)
+    // Fallback 1: Quotable API
     try {
-      const numSentences = Math.min(12, Math.floor(level / 2) + 2);
-      const backupUrl = `https://baconipsum.com/api/?type=all-meat&paras=1&sentences=${numSentences}&format=text`;
-      const backupText = await fetchFromAPI(backupUrl);
-      if (backupText && backupText.length > 20) {
-        return backupText.trim();
+      const quoteResponse = await fetchFromAPI('https://api.quotable.io/random?minLength=100');
+      const quoteData = JSON.parse(quoteResponse);
+      if (quoteData && quoteData.content) {
+        return `${quoteData.content} — ${quoteData.author}`;
       }
-    } catch (backupError) {
-      console.warn('All APIs failed, using local fallback:', backupError.message);
+    } catch (quoteError) {
+      console.warn('Quotable failed:', quoteError.message);
     }
   }
 
