@@ -13,7 +13,12 @@ const PARAGRAPHS = [
 
 const fetchFromAPI = (url) => {
   return new Promise((resolve, reject) => {
-    const req = https.get(url, { timeout: 5000 }, (res) => {
+    const req = https.get(url, { 
+      timeout: 5000,
+      headers: {
+        'User-Agent': 'TypeWars/1.0 (https://typewars.com; support@typewars.com)'
+      }
+    }, (res) => {
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
@@ -37,29 +42,40 @@ const fetchFromAPI = (url) => {
 };
 
 const generateParagraph = async (level = 1) => {
-  // Scaling length: Starts at ~2 sentences at lvl 1, goes up to ~12 at lvl 20+
-  const numSentences = Math.min(12, Math.floor(level / 2) + 2);
-  
   try {
-    // Fetch from Metaphorpsum API (1 paragraph, dynamic sentence count)
-    const url = `https://metaphorpsum.com/paragraphs/1/${numSentences}`;
-    const text = await fetchFromAPI(url);
+    // Primary Source: Wikipedia Random Summary (High Quality, Proper English)
+    const url = `https://en.wikipedia.org/api/rest_v1/page/random/summary`;
+    const response = await fetchFromAPI(url);
+    const data = JSON.parse(response);
     
-    if (text && text.length > 20) {
-      return text.trim();
+    if (data && data.extract && data.extract.length > 50) {
+      // Wikipedia summaries are naturally good paragraphs.
+      // We'll return it as is, or trim if too long for low levels.
+      let text = data.extract.trim();
+      
+      // Basic length adjustment for level
+      const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+      const maxSentences = Math.min(12, Math.floor(level / 2) + 2);
+      
+      if (sentences.length > maxSentences) {
+        text = sentences.slice(0, maxSentences).join(' ');
+      }
+      
+      return text;
     }
   } catch (error) {
-    console.warn('Metaphorpsum fetch failed, trying fallback API:', error.message);
+    console.warn('Wikipedia fetch failed, trying fallback:', error.message);
     
-    // Fallback API: Bacon Ipsum
+    // Fallback 1: Bacon Ipsum (Reliable, but "meat" text)
     try {
+      const numSentences = Math.min(12, Math.floor(level / 2) + 2);
       const backupUrl = `https://baconipsum.com/api/?type=all-meat&paras=1&sentences=${numSentences}&format=text`;
       const backupText = await fetchFromAPI(backupUrl);
       if (backupText && backupText.length > 20) {
         return backupText.trim();
       }
     } catch (backupError) {
-      console.warn('All paragraph APIs failed, using local fallback:', backupError.message);
+      console.warn('All APIs failed, using local fallback:', backupError.message);
     }
   }
 
