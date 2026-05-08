@@ -1,2 +1,170 @@
-# typewars-open
-TypeWars is a modern real-time typing battle platform with multiplayer support, XP progression, global leaderboards, daily challenges, and multiple testing modes. Players can improve their typing speed, compete with others worldwide, track their WPM performance, and share their achievements with the community.
+# ⚡ TypeWars: Neural Grid Typing Battle
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
+
+**TypeWars** is a high-octane, cyberpunk-themed real-time typing battle platform. Compete against players worldwide in the "Neural Grid", track your WPM performance, climb the global leaderboards, and level up your typing skills.
+
+![TypeWars Hero](./docs/images/hero.png)
+
+---
+
+## 🚀 Key Features
+
+- 🎮 **Real-time Multiplayer Battles**: Join lobbies and race against other players in live typing matches.
+- 👤 **Dual Authentication**: Sign in as a Guest for quick play or create a Secure Account with OTP verification to track progress.
+- 🏆 **XP & Progression System**: Earn XP for every race, level up your profile, and unlock achievements.
+- 📊 **Dynamic Leaderboards**: Compete for the top spot in global rankings based on WPM and wins.
+- 📅 **Daily Challenges**: Complete specialized typing tasks to earn bonus rewards.
+- 🛡️ **Secure Encryption**: All communications are encrypted, with OTP-based recovery and verification.
+- 🐳 **Docker Support**: Easy deployment using Docker and Docker Compose.
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **Framework**: React.js with Vite
+- **Styling**: Tailwind CSS (Cyberpunk Theme)
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+- **State Management**: React Hooks & Context API
+
+### Backend
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Real-time**: Socket.io
+- **Database**: MongoDB (Mongoose ODM)
+- **Security**: JWT, Bcrypt.js
+- **Email**: Nodemailer (SMTP/Brevo)
+
+---
+
+## 🏗️ Architecture
+
+TypeWars follows a **Client-Server-Event** architecture:
+
+1.  **Client (React)**: Handles the UI/UX, local typing logic (WPM calculation, error detection), and communicates with the server via REST and WebSockets.
+2.  **Server (Express)**: Manages authentication, user profiles, and serves as the REST API layer.
+3.  **Real-time Engine (Socket.io)**: Handles the matchmaking queue, game state synchronization, and live race updates.
+4.  **Database (MongoDB)**: Persists user data, race history, and global rankings.
+
+```mermaid
+graph TD
+    A[Frontend: React/Vite] <-->|REST API| B[Backend: Express]
+    A <-->|WebSockets| C[Game Engine: Socket.io]
+    B <--> D[(MongoDB)]
+    C <--> D
+    B -->|SMTP| E[Email Service]
+```
+
+---
+
+## 📂 Project Structure
+
+```text
+typewars-open/
+├── backend/                # Node.js Express Server
+│   ├── controllers/        # Route logic
+│   ├── models/             # Mongoose schemas
+│   ├── routes/             # API endpoints
+│   ├── sockets/            # Socket.io game logic
+│   ├── utils/              # Helper functions (Email, etc.)
+│   └── server.js           # Entry point
+├── frontend/               # React Vite Application
+│   ├── src/
+│   │   ├── components/     # Reusable UI elements
+│   │   ├── pages/          # View components
+│   │   ├── services/       # API & Socket services
+│   │   └── assets/         # Static files
+├── docs/                   # Documentation & Images
+└── docker-compose.yml      # Orchestration
+```
+
+---
+
+## ⚙️ Setup Guide
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v16+)
+- [MongoDB](https://www.mongodb.com/) (Local or Atlas)
+- [Docker](https://www.docker.com/) (Optional)
+
+### Installation
+
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/yourusername/typewars-open.git
+    cd typewars-open
+    ```
+
+2.  **Backend Setup**:
+    ```bash
+    cd backend
+    npm install
+    cp .env.example .env
+    ```
+    *Edit `.env` and provide your MongoDB URI and SMTP credentials.*
+
+3.  **Frontend Setup**:
+    ```bash
+    cd ../frontend
+    npm install
+    cp .env.example .env
+    ```
+
+### Running Locally
+
+1.  **Start Backend**:
+    ```bash
+    cd backend
+    npm run dev
+    ```
+
+2.  **Start Frontend**:
+    ```bash
+    cd frontend
+    npm run dev
+    ```
+
+3.  Access the app at `http://localhost:5173`.
+
+---
+
+## 📸 Demo Images
+
+To see the platform in action, place the following images in the `docs/images/` folder:
+
+| Image Name | Description | Recommended Dimensions |
+| :--- | :--- | :--- |
+| `hero.png` | Landing page showing the cyberpunk title. | 1200x600 |
+| `lobby.png` | Multiplayer matchmaking lobby. | 1200x800 |
+| `battle.png` | Live typing race in progress. | 1200x800 |
+| `profile.png` | User profile with XP and stats. | 1200x800 |
+
+---
+
+## 🤝 Contribution Guide
+
+We welcome contributions! To contribute:
+
+1.  **Fork** the project.
+2.  **Create** your feature branch (`git checkout -b feature/AmazingFeature`).
+3.  **Commit** your changes (`git commit -m 'Add some AmazingFeature'`).
+4.  **Push** to the branch (`git push origin feature/AmazingFeature`).
+5.  **Open** a Pull Request.
+
+Please ensure your code follows the existing style and includes comments where necessary.
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+<p align="center">
+  Developed by <a href="https://github.com/atribiswas03">Atri Biswas</a>
+</p>
