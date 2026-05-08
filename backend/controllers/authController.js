@@ -78,7 +78,7 @@ exports.register = async (req, res) => {
       
       await existingUser.save();
       
-      await sendOTPEmail(email, otpCode);
+      await sendOTPEmail(email, existingUser.username, otpCode);
       return res.status(200).json({ message: 'OTP_SENT_TO_EMAIL', email });
     }
 

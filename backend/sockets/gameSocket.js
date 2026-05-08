@@ -22,9 +22,11 @@ module.exports = (io) => {
     const avgLevel = Math.round(humanPlayers.reduce((acc, p) => acc + (p.level || 1), 0) / humanPlayers.length) || 1;
     const quote = await generateParagraph(avgLevel);
     
-    // Calculate match duration
+    // Calculate match duration with scaling difficulty
+    // Base WPM requirement increases with level (20 + avgLevel * 1.5)
+    const targetWpm = 20 + (avgLevel * 1.5);
     const wordCount = quote.split(' ').length;
-    const matchDuration = Math.max(30, Math.min(120, Math.ceil((wordCount / 20) * 60) + 15));
+    const matchDuration = Math.max(30, Math.min(150, Math.ceil((wordCount / targetWpm) * 60) + 10));
 
     const roomData = {
       id: roomId,
@@ -364,7 +366,7 @@ module.exports = (io) => {
       });
     });
 
-    socket.on('update_stats', async ({ username, wpm, accuracy, mode }) => {
+    socket.on('update_stats', async ({ username, wpm, accuracy, mode, rank }) => {
       try {
         const User = require('../models/User');
         let user = await User.findOne({ username });
@@ -391,13 +393,34 @@ module.exports = (io) => {
         }
 
         user.gamesPlayed += 1;
+
+        // Update wins if rank is 1
+        if (rank === 1) {
+          user.gamesWon += 1;
+        }
+
         if (wpm > user.bestWPM) user.bestWPM = wpm;
         user.averageWPM = ((user.averageWPM * (user.gamesPlayed - 1)) + wpm) / user.gamesPlayed;
         
         let xpMultiplier = 2;
         if (mode === 'challenge') xpMultiplier = 5;
-        const xpGained = Math.round(wpm * (accuracy / 100) * xpMultiplier);
+
+        // Base XP from performance
+        const performanceXP = Math.round(wpm * (accuracy / 100) * xpMultiplier);
         
+        // Rank-based bonus XP
+        let rankBonus = 0;
+        if (rank === 1) {
+          rankBonus = 50; // Winner Bonus
+        } else if (rank === 2) {
+          rankBonus = 30;
+        } else if (rank === 3) {
+          rankBonus = 20;
+        } else if (rank > 0) {
+          rankBonus = 10; // Participation Bonus for losing
+        }
+        
+        const xpGained = performanceXP + rankBonus;
         user.xp += xpGained;
         user.level = Math.floor(Math.pow(user.xp / 100, 0.6)) + 1;
 

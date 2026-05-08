@@ -46,6 +46,7 @@ const BattlePage = () => {
   const inputRef = useRef(null);
   const scorecardRef = useRef(null);
   const statsRef = useRef(stats);
+  const hasSentStatsRef = useRef(false);
 
   // Persistence: Save/Load Solo Quotes
   useEffect(() => {
@@ -160,23 +161,74 @@ const BattlePage = () => {
     setShowShareOptions(false);
   };
 
-  const handleGameFinish = (finalWpm, finalAccuracy, wasCompleted = false) => {
+  const handleGameFinish = (finalWpm, finalAccuracy, wasCompleted = false, forcedRank = null) => {
+    // If already finished, only proceed if we are providing a rank we didn't have before
+    if (gameState === 'finished') {
+      if (forcedRank && !myRank) {
+        setMyRank(forcedRank);
+        // Calculate XP with rank bonuses for display update
+        let rankBonus = 0;
+        if (forcedRank === 1) rankBonus = 50;
+        else if (forcedRank === 2) rankBonus = 30;
+        else if (forcedRank === 3) rankBonus = 20;
+        else if (forcedRank > 0) rankBonus = 10;
+
+        const performanceXP = Math.round(finalWpm * (finalAccuracy / 100) * (mode === 'challenge' ? 5 : 2));
+        setXpGained(mode === 'training' ? 0 : performanceXP + rankBonus);
+        
+        // If we already sent stats without rank, we might want to update, 
+        // but to avoid double counting gamesPlayed, we'll only emit if we haven't yet
+        if (!hasSentStatsRef.current) {
+          socket.emit('update_stats', { 
+            username: localStorage.getItem('tw_username'),
+            wpm: finalWpm, accuracy: finalAccuracy, mode: mode, rank: forcedRank
+          });
+          hasSentStatsRef.current = true;
+        }
+      }
+      return;
+    }
+
     setGameState(prev => {
       if (prev === 'finished') return prev;
 
-      // In solo modes (challenge/training), we manually set the rank
+      let rankToUse = forcedRank;
       if (mode !== 'battle') {
-        setMyRank(wasCompleted ? 1 : 2);
+        rankToUse = wasCompleted ? 1 : 2;
+        setMyRank(rankToUse);
+      } else {
+        rankToUse = forcedRank || myRank;
       }
 
-      socket.emit('update_stats', { 
-        username: localStorage.getItem('tw_username'),
-        wpm: finalWpm, accuracy: finalAccuracy, mode: mode
-      });
-      const calculatedXp = mode === 'training' 
-        ? 0 
-        : Math.round(finalWpm * (finalAccuracy / 100) * (mode === 'challenge' ? 5 : 2));
-      setXpGained(calculatedXp);
+      if (!hasSentStatsRef.current) {
+        // In battle mode, we wait for the official rank from the server before emitting stats
+        // This ensures the server gets the correct rank for XP bonuses and avoids double-counting games
+        if (mode === 'battle' && !rankToUse) {
+          return 'finished'; 
+        }
+
+        socket.emit('update_stats', { 
+          username: localStorage.getItem('tw_username'),
+          wpm: finalWpm, 
+          accuracy: finalAccuracy, 
+          mode: mode,
+          rank: rankToUse
+        });
+        hasSentStatsRef.current = true;
+      }
+
+      // Calculate XP with rank bonuses
+      let rankBonus = 0;
+      if (rankToUse === 1) rankBonus = 50;
+      else if (rankToUse === 2) rankBonus = 30;
+      else if (rankToUse === 3) rankBonus = 20;
+      else if (rankToUse > 0) rankBonus = 10;
+
+      const performanceXP = Math.round(finalWpm * (finalAccuracy / 100) * (mode === 'challenge' ? 5 : 2));
+      const totalXp = mode === 'training' ? 0 : performanceXP + rankBonus;
+      
+      setXpGained(totalXp);
+
       if (roomId) {
         sessionStorage.removeItem(`tw_room_${roomId}_input`);
         sessionStorage.removeItem(`tw_solo_time_${roomId}`);
@@ -231,6 +283,10 @@ const BattlePage = () => {
       setMyRank(rank);
       if (isTimeUp) showNotification("TIME_EXPIRED", "error");
       if (rank === 1) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      
+      // If we haven't finished yet (e.g. time's up or someone else won and ended it)
+      // or if we just want to ensure the official rank is processed
+      handleGameFinish(statsRef.current.wpm, statsRef.current.accuracy, !isTimeUp, rank);
     });
     socket.on('player_finished_notification', ({ username, rank }) => {
       showNotification(`${username} FINISHED: #${rank}`, rank === 1 ? 'success' : 'info');

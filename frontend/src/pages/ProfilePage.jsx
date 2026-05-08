@@ -37,6 +37,18 @@ const ProfilePage = () => {
     return 'GHOST_IN_THE_SHELL';
   };
 
+  const calculateXpProgress = (xp) => {
+    if (!xp) return { progress: 0, nextLevelXp: 100 };
+    const level = Math.floor(Math.pow(xp / 100, 0.6)) + 1;
+    const currentLevelXp = level === 1 ? 0 : Math.round(100 * Math.pow(level - 1, 1 / 0.6));
+    const nextLevelXp = Math.round(100 * Math.pow(level, 1 / 0.6));
+    const progress = ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
+    return {
+      progress: Math.min(Math.max(progress, 0), 100),
+      nextLevelXp
+    };
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center font-mono text-cyber-neon">
       <div className="animate-pulse">SYNCHRONIZING_NEURAL_STATS...</div>
@@ -51,6 +63,8 @@ const ProfilePage = () => {
       </button>
     </div>
   );
+
+  const { progress, nextLevelXp } = calculateXpProgress(stats.xp);
 
   return (
     <div className="flex-grow p-4 md:p-8 flex items-center justify-center relative overflow-hidden">
@@ -69,7 +83,10 @@ const ProfilePage = () => {
 
         <div className="mt-8 mb-12">
           <h1 className="text-2xl md:text-5xl font-black neon-text italic mb-2 uppercase tracking-tighter">{stats.username}</h1>
-          <p className="text-cyber-neon/40 font-mono text-xs tracking-[0.4em]">{getLevelTitle(stats.level)} // LVL_{stats.level}</p>
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-cyber-neon/40 font-mono text-xs tracking-[0.4em] uppercase">{getLevelTitle(stats.level)}</span>
+            <span className="px-3 py-1 bg-cyber-neon/10 border border-cyber-neon/20 rounded text-cyber-neon font-mono text-xs font-bold">LVL_{stats.level}</span>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
@@ -94,14 +111,18 @@ const ProfilePage = () => {
           <div className="p-6 rounded-2xl bg-cyber-neon/5 border border-cyber-neon/10 text-left">
             <div className="flex justify-between text-[10px] font-mono text-cyber-neon/40 mb-2 uppercase">
               <span>NEURAL_PROGRESS</span>
-              <span>XP: {stats.xp.toLocaleString()}</span>
+              <span>{stats.xp.toLocaleString()} / {nextLevelXp.toLocaleString()} XP</span>
             </div>
             <div className="h-2 bg-cyber-black rounded-full overflow-hidden">
               <motion.div 
                 initial={{ width: 0 }}
-                animate={{ width: '65%' }}
+                animate={{ width: `${progress}%` }}
                 className="h-full bg-cyber-neon shadow-[0_0_10px_#00f3ff]"
               ></motion.div>
+            </div>
+            <div className="flex justify-between mt-2 text-[8px] font-mono text-cyber-neon/20 uppercase tracking-widest">
+              <span>LVL {stats.level}</span>
+              <span>LVL {stats.level + 1}</span>
             </div>
           </div>
 

@@ -56,7 +56,7 @@ exports.getUserStats = async (req, res) => {
 };
 
 exports.updateStats = async (req, res) => {
-  const { username, wpm, accuracy, mode } = req.body; // mode: 'battle', 'challenge', 'training'
+  const { username, wpm, accuracy, mode, rank } = req.body; // mode: 'battle', 'challenge', 'training', rank: 1, 2, 3...
   try {
     let user = await User.findOne({ username });
     if (!user) {
@@ -84,6 +84,12 @@ exports.updateStats = async (req, res) => {
     }
 
     user.gamesPlayed += 1;
+    
+    // Update wins if rank is 1
+    if (rank === 1) {
+      user.gamesWon += 1;
+    }
+
     if (wpm > user.bestWPM) user.bestWPM = wpm;
     
     // Simple average calculation
@@ -93,7 +99,22 @@ exports.updateStats = async (req, res) => {
     let xpMultiplier = 2;
     if (mode === 'challenge') xpMultiplier = 5; // Challenge gives more XP
     
-    const xpGained = Math.round(wpm * (accuracy / 100) * xpMultiplier);
+    // Base XP from performance
+    const performanceXP = Math.round(wpm * (accuracy / 100) * xpMultiplier);
+    
+    // Rank-based bonus XP
+    let rankBonus = 0;
+    if (rank === 1) {
+      rankBonus = 50; // Winner Bonus
+    } else if (rank === 2) {
+      rankBonus = 30;
+    } else if (rank === 3) {
+      rankBonus = 20;
+    } else if (rank > 0) {
+      rankBonus = 10; // Participation Bonus for losing
+    }
+    
+    const xpGained = performanceXP + rankBonus;
     user.xp += xpGained;
     
     // level = floor((xp/100)^0.6) + 1

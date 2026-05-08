@@ -62,67 +62,114 @@ const LeaderboardPage = () => {
           </div>
         </div>
 
-        <div className="p-6 overflow-x-auto">
+        <div className="p-2 md:p-6 overflow-x-auto">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <Loader2 className="w-12 h-12 text-cyber-neon animate-spin" />
-              <p className="font-mono text-[10px] text-cyber-neon/40 animate-pulse uppercase">RETRIEVING_DATA_FROM_MAIN_FRAME...</p>
+              <div className="relative">
+                <Loader2 className="w-12 h-12 text-cyber-neon animate-spin" />
+                <div className="absolute inset-0 blur-lg bg-cyber-neon/20 animate-pulse" />
+              </div>
+              <p className="font-mono text-[10px] text-cyber-neon/40 animate-pulse uppercase tracking-[0.5em]">RETRIEVING_DATA_FROM_MAIN_FRAME...</p>
             </div>
           ) : (
-            <table className="w-full text-left font-mono">
+            <table className="w-full text-left font-mono border-separate border-spacing-y-3">
               <thead>
-                <tr className="text-cyber-neon/30 text-[10px] uppercase tracking-widest border-b border-white/5">
-                  <th className="p-6">RANK</th>
-                  <th className="p-6">OPERATIVE</th>
-                  <th className="p-6">SPEED_WPM</th>
-                  <th className="p-6">NEURAL_LEVEL</th>
+                <tr className="text-cyber-neon/30 text-[10px] uppercase tracking-[0.3em]">
+                  <th className="px-6 py-4">Rank</th>
+                  <th className="px-6 py-4">Operative</th>
+                  <th className="px-6 py-4">Peak_Speed</th>
+                  <th className="px-6 py-4 text-right">Neural_Level</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
-                {leaderboard.map((user, idx) => (
-                  <motion.tr 
-                    key={user._id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="group hover:bg-white/[0.02] transition-colors relative"
-                  >
-                    <td className="p-6">
-                      <div className="flex items-center gap-4">
-                        <span className={`text-2xl font-black italic ${idx < 3 ? 'text-cyber-neon neon-text' : 'text-white/20'}`}>
-                          {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
-                        </span>
-                        {idx === 0 && <Shield className="w-4 h-4 text-cyber-neon animate-pulse" />}
-                      </div>
-                    </td>
-                    <td className="p-6">
-                      <div className="flex flex-col">
-                        <span className="font-black text-white text-lg group-hover:text-cyber-neon transition-colors tracking-tight uppercase">
-                          {user.username}
-                        </span>
-                        <span className="text-[8px] text-white/20 uppercase tracking-widest">ACTIVE_OPERATIVE</span>
-                      </div>
-                    </td>
-                    <td className="p-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-cyber-neon/5 border border-cyber-neon/10 flex items-center justify-center">
-                          <Zap className="w-4 h-4 text-cyber-neon" />
+              <tbody>
+                {leaderboard.map((user, idx) => {
+                  const isTop3 = idx < 3;
+                  const rankColors = [
+                    'text-[#FFD700] drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]', // Gold
+                    'text-[#C0C0C0] drop-shadow-[0_0_8px_rgba(192,192,192,0.5)]', // Silver
+                    'text-[#CD7F32] drop-shadow-[0_0_8px_rgba(205,127,50,0.5)]', // Bronze
+                  ];
+
+                  return (
+                    <motion.tr 
+                      key={user._id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="group transition-all duration-300 relative"
+                    >
+                      {/* Rank Cell */}
+                      <td className="px-6 py-5 bg-white/[0.02] group-hover:bg-white/[0.05] rounded-l-2xl border-y border-l border-white/5 group-hover:border-cyber-neon/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <span className={`text-2xl font-black italic w-10 ${isTop3 ? rankColors[idx] : 'text-white/20'}`}>
+                            {(idx + 1).toString().padStart(2, '0')}
+                          </span>
+                          {idx === 0 && (
+                            <div className="relative">
+                              <Shield className="w-4 h-4 text-[#FFD700] animate-pulse" />
+                              <div className="absolute inset-0 blur-sm bg-[#FFD700]/30 animate-pulse" />
+                            </div>
+                          )}
                         </div>
-                        <div className="flex flex-col">
-                          <span className="font-black text-xl text-white">{user.bestWPM}</span>
-                          <span className="text-[8px] text-cyber-neon/40 uppercase">PEAK_SPEED</span>
+                      </td>
+
+                      {/* Operative Cell */}
+                      <td className="px-6 py-5 bg-white/[0.02] group-hover:bg-white/[0.05] border-y border-white/5 group-hover:border-cyber-neon/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-xl border flex items-center justify-center text-lg font-black transition-all duration-500
+                            ${idx === 0 ? 'bg-[#FFD700]/10 border-[#FFD700]/30 text-[#FFD700]' : 
+                              idx === 1 ? 'bg-[#C0C0C0]/10 border-[#C0C0C0]/30 text-[#C0C0C0]' :
+                              idx === 2 ? 'bg-[#CD7F32]/10 border-[#CD7F32]/30 text-[#CD7F32]' :
+                              'bg-white/5 border-white/10 text-white/40'}`}>
+                            {user.username[0].toUpperCase()}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className={`font-black text-lg transition-colors tracking-tight uppercase group-hover:text-white
+                              ${isTop3 ? 'text-white' : 'text-white/60'}`}>
+                              {user.username}
+                            </span>
+                            <span className="text-[7px] text-white/20 uppercase tracking-[0.4em] font-bold">
+                              {idx === 0 ? 'SYSTEM_CHAMPION' : idx < 5 ? 'ELITE_OPERATIVE' : 'ACTIVE_OPERATIVE'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-6">
-                      <div className="flex items-center gap-2">
-                        <div className="px-3 py-1 bg-cyber-purple/10 border border-cyber-purple/30 rounded text-[10px] font-bold text-cyber-purple shadow-[0_0_10px_rgba(188,0,255,0.2)]">
-                          LVL_{user.level.toString().padStart(2, '0')}
+                      </td>
+
+                      {/* Speed Cell */}
+                      <td className="px-6 py-5 bg-white/[0.02] group-hover:bg-white/[0.05] border-y border-white/5 group-hover:border-cyber-neon/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col min-w-[80px]">
+                            <div className="flex items-end gap-1">
+                              <span className="font-black text-2xl text-white group-hover:text-cyber-neon transition-colors leading-none">
+                                {user.bestWPM}
+                              </span>
+                              <span className="text-[10px] text-white/20 font-bold mb-1">WPM</span>
+                            </div>
+                            <div className="w-full h-1 bg-white/5 rounded-full mt-2 overflow-hidden">
+                              <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.min(user.bestWPM / 1.5, 100)}%` }}
+                                className={`h-full ${isTop3 ? 'bg-cyber-neon' : 'bg-white/20'}`}
+                              />
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
+                      </td>
+
+                      {/* Level Cell */}
+                      <td className="px-6 py-5 bg-white/[0.02] group-hover:bg-white/[0.05] rounded-r-2xl border-y border-r border-white/5 group-hover:border-cyber-neon/30 text-right transition-all">
+                        <div className="inline-flex flex-col items-end gap-1">
+                          <span className="text-[8px] text-white/20 font-bold uppercase tracking-widest">Neural_Level</span>
+                          <div className={`px-3 py-1 rounded border text-[10px] font-black tracking-tighter transition-all duration-300
+                            ${idx === 0 ? 'bg-[#FFD700]/10 border-[#FFD700]/30 text-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.1)]' :
+                              'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple shadow-[0_0_10px_rgba(188,0,255,0.1)]'}`}>
+                            LVL_{user.level.toString().padStart(2, '0')}
+                          </div>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
