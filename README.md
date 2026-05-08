@@ -10,9 +10,6 @@
 
 ## 🖼️ Project Showcase
 
-> [!NOTE]
-> GitHub READMEs are static and do not support interactive JavaScript sliders. Below is a structured gallery of the platform. For an animated experience, we recommend combining these into a GIF.
-
 <div align="center">
   <img src="./docs/images/hero.png" width="800" alt="TypeWars Hero" />
   <br />
